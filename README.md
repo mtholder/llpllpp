@@ -3,8 +3,7 @@ Is a C++ wrapper around the low-level PLL lib
 
 See https://github.com/xflouris/libpll for the code base that provides 
   the real functionality!
-[![Build Status](https://magnum.travis-ci.com/xflouris/libpll.svg?token=rjft2y6GBHow4SDyjuoy&branch=master)](https://magnum.travis-ci.com/xflouris/libpll)
-[![License](https://img.shields.io/badge/license-AGPL-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.en.html)
+
 
 # Installation
 
