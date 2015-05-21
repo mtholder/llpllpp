@@ -8,6 +8,7 @@ std::unique_ptr<UTree> UTree::parseNewick(const std::string & fn,
   if (tree == nullptr) {
     throw PLLException(std::string("Could not read a tree from ") + fn);
   }
+  // Move
   const char ** tipNames = nullptr;
   try {
     if (otus == nullptr) {
@@ -22,11 +23,19 @@ std::unique_ptr<UTree> UTree::parseNewick(const std::string & fn,
     }
   } catch (...) {
     pll_destroy_utree(tree);
-    free(tipNames);
+    if (tipNames != nullptr) {
+      free(tipNames);
+    }
     throw;
   }
+  if (tipNames != nullptr) {
+    free(tipNames);
+  }
+  // Now transfer to a new UTree
+
   UTree * utree = new UTree();
   utree->pllTree = tree;
+  utree->otusShPtr = otus;
   return std::unique_ptr<UTree>(utree);
 }
 

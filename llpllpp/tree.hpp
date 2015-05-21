@@ -14,10 +14,10 @@ namespace pllpp {
 class UTree {
   std::shared_ptr<OTUSet> otusShPtr;
   pll_utree_t * pllTree;
-  public:
   UTree()
     :pllTree(nullptr) {
   }
+  public:
   ~UTree() {
     if (pllTree != nullptr) {
       pll_destroy_utree(pllTree);
