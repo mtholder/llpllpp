@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: llpllpp
+Description: llpllpp is a C++ wrapper around the low-level PLL phylogenetics code base
+Version: 0.0
+Libs: -L${libdir}/llpllpp
+Cflags: -I${includedir}/llpllpp
+
+
