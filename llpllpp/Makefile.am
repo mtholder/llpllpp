@@ -3,7 +3,9 @@ libllpllpp_ladir = $(includedir)/llpllpp
 libllpllpp_la_LDFLAGS = -release @PACKAGE_VERSION@ -lm -lpll
 
 libllpllpp_la_HEADERS = \
-	instance.hpp
+	instance.hpp \
+	tree.hpp
 
 libllpllpp_la_SOURCES = \
-	instance.cpp
+	instance.cpp \
+	tree.cpp

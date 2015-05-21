@@ -1,4 +1,4 @@
-#if ! defined(__LLPLLPP_INSTANCE_HPP__)
-#define __LLPLLPP_INSTANCE_HPP__
+#if ! defined(__LLPLLPLUSPLUS_INSTANCE_HPP__)
+#define __LLPLLPLUSPLUS_INSTANCE_HPP__
 
 #endif

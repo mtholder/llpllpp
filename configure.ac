@@ -63,6 +63,7 @@ AC_SUBST(MAYBE_TEST_DIR)
 AC_PROG_MAKE_SET
 AC_CONFIG_FILES([\
 	Makefile \
+	examples/Makefile \
 	llpllpp/Makefile \
 	test/Makefile \
 	llpllppv.0.pc \
