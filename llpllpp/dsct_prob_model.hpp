@@ -7,7 +7,7 @@
 namespace pllpp {
 
 class RateHetModel {
-  std::vector<double> rates;
+  mutable std::vector<double> rates;
   double alphaParam;
   unsigned long rateSetCounter = 0;
   mutable unsigned long rateCalcCounter = 0;

@@ -34,6 +34,7 @@ void PhyloCalculator::init_traverse() {
   // clv2 to the index of node. 
   // edge_matrix_index, clv1, and clv2 can be used to evaluate the log-likelihood using the
   //   pll_compute_edge_loglikelihood function 
+  numPendingOperations = tipCount - 2;
   pll_traverse_utree(node,
                      tipCount,
                      &edgeLengths,
@@ -75,6 +76,19 @@ void PhyloCalculator::updateProbMatrices(std::size_t partIndex) {
                            matrixIndices, 
                            edgeLengths, 
                            partData.numProbMats);
+
+}
+
+void PhyloCalculator::updatePartials(std::size_t ) {
+  pll_update_partials(partData.partition, operations, numPendingOperations);
+}
+
+double PhyloCalculator::computeEdgeLogLikelihood(std::size_t partIndex) {
+  return pll_compute_edge_loglikelihood(partData.partition, 
+                                        clv1,
+                                        clv2,
+                                        edgePMatrixIndex,
+                                        partIndex);
 
 }
 

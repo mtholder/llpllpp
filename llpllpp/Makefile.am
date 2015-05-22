@@ -7,6 +7,7 @@ libllpllpp_la_HEADERS = \
 	tree.hpp
 
 libllpllpp_la_SOURCES = \
+	dsct_prob_model.cpp \
 	instance.cpp \
 	parsed_matrix.cpp \
 	partitioned_data.cpp \

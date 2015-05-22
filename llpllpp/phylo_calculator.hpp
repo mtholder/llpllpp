@@ -22,7 +22,7 @@ class PhyloCalculator {
   double * edgeLengths = nullptr;
   int * matrixIndices = nullptr;
   pll_operation * operations = nullptr;
-
+  int numPendingOperations = 0;
   typedef std::vector<unsigned long> UpdateCounterVec;
   UpdateCounterVec rateCatUpdateCounter;
   UpdateCounterVec stateFreqUpdateCounter;

@@ -4,7 +4,8 @@
 namespace pllpp {
 const std::vector<double> & RateHetModel::getRates() const {
   if (rateCalcCounter != rateSetCounter) {
-    pll_compute_gamma_cats(alphaParam, static_cast<int>(rates.size()), &rates[0]);
+    double * r = &(rates[0]);
+    pll_compute_gamma_cats(alphaParam, static_cast<int>(rates.size()), r);
     rateCalcCounter = rateSetCounter;
   }
   return rates;

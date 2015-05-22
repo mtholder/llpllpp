@@ -13,7 +13,7 @@ namespace pllpp {
 
 class PartitionedData {
   pll_partition * partition = nullptr;
-  int numProbMats;
+  int numProbMats = 0;
   public:
   PartitionedData(const ParsedMatrix & parsedMat, const ModelStorageDescription &);
   ~PartitionedData() {
