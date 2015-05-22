@@ -29,6 +29,7 @@ class UTree {
   std::size_t getNumLeaves() const {
     return (otusShPtr == nullptr ? 0U : otusShPtr->size());
   }
+  friend class PhyloCalculator;
 };
 
 } // namespace pllpp

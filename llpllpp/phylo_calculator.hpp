@@ -9,13 +9,19 @@
 #include "llpllpp/parsed_matrix.hpp"
 #include "llpllpp/partitioned_data.hpp"
 #include "llpllpp/tree.hpp"
-
+struct pll_operation;
 namespace pllpp {
 
 class PhyloCalculator {
   PartitionedData partData;
   std::vector<DSCTProbModel> probModelVec;
   UTree & tree;
+  int edgePMatrixIndex;
+  int clv1;
+  int clv2;
+  double * edgeLengths = nullptr;
+  int * matrixIndices = nullptr;
+  pll_operation * operations = nullptr;
   public:
   PhyloCalculator(const PhyloCalculator &) = delete;
   PhyloCalculator & operator=(const PhyloCalculator &) = delete;
@@ -30,6 +36,8 @@ class PhyloCalculator {
   void updateProbMatrices(std::size_t partIndex);
   void updatePartials(std::size_t partIndex);
   double computeEdgeLogLikelihood(std::size_t partIndex);
+  private:
+  void init_traverse();
 
 };
 
