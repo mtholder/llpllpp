@@ -22,6 +22,11 @@ class PhyloCalculator {
   double * edgeLengths = nullptr;
   int * matrixIndices = nullptr;
   pll_operation * operations = nullptr;
+
+  typedef std::vector<unsigned long> UpdateCounterVec;
+  UpdateCounterVec rateCatUpdateCounter;
+  UpdateCounterVec stateFreqUpdateCounter;
+  UpdateCounterVec exchangeUpdateCounter;
   public:
   PhyloCalculator(const PhyloCalculator &) = delete;
   PhyloCalculator & operator=(const PhyloCalculator &) = delete;

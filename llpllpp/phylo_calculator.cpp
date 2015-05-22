@@ -6,7 +6,10 @@ PhyloCalculator::PhyloCalculator(const ParsedMatrix & parsedMat,
                                  const ModelStorageDescription &msd,
                                  UTree & treeRef)
   :partData(parsedMat, msd),
-  tree(treeRef) {
+  tree(treeRef),
+  rateCatUpdateCounter{0},
+  stateFreqUpdateCounter{0},
+  exchangeUpdateCounter{0} {
   auto otus = tree.getOTUSet();
   assert(otus != nullptr);
   const int tipCount = static_cast<int>(tree.getNumLeaves());
@@ -43,6 +46,36 @@ void PhyloCalculator::init_traverse() {
 
 void PhyloCalculator::clear() {
   partData.clear();
+}
+
+void PhyloCalculator::updateProbMatrices(std::size_t partIndex) {
+  const int partIndI = static_cast<int>(partIndex);
+  const auto & model = getModel(partIndex);
+  const auto sfc = model.getStateFreqCounter();
+  if (stateFreqUpdateCounter.at(partIndex) != sfc) {
+    const auto & sf = model.getStateFrequencies();
+    pll_set_frequencies(partData.partition, partIndI, &sf[0]);
+    stateFreqUpdateCounter[partIndex] = sfc;
+  }
+  const auto exc = model.getExchangeCounter();
+  if (exchangeUpdateCounter.at(partIndex) != exc) {
+    const auto & excp = model.getExchangeabilityParams();
+    pll_set_subst_params(partData.partition, partIndI, &excp[0]);
+    exchangeUpdateCounter[partIndex] = exc;
+  }
+  const auto & rateHet = model.getRateHet();
+  const auto rhc = rateHet.getCounter();
+  if (rateCatUpdateCounter.at(partIndex) != rhc) {
+    const auto & rates = rateHet.getRates();
+    pll_set_category_rates(partData.partition, &rates[0]);
+    rateCatUpdateCounter[partIndex] = rhc;
+  }
+  pll_update_prob_matrices(partData.partition, 
+                           partIndI, 
+                           matrixIndices, 
+                           edgeLengths, 
+                           partData.numProbMats);
+
 }
 
 } // namespace

@@ -12,7 +12,6 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
   auto otus = tree->getOTUSet();
   tree->setMissingBranchLength(0.000001);
   auto inpMatrix = ParsedMatrix::parseFasta(fastaFilename, otus);
-  auto tipCount = otus->size();
   ModelStorageDescription msd{NUM_STATES,
                              NUM_RATE_CATS,
                              ArchAttribEnum::LLPLL_ATTRIB_ARCH_SSE};

@@ -9,7 +9,7 @@ PartitionedData::PartitionedData(const ParsedMatrix & parsedMat,
   const int tipCount = static_cast<int>(otus->size());
   assert(tipCount == static_cast<int>(parsedMat.getNumRows()));
   const auto numModels = 1; // for this ctor only
-  const auto numProbMats = 2*tipCount - 3;
+  numProbMats = 2*tipCount - 3;
   partition = pll_create_partition(tipCount,
                                    tipCount - 2,
                                    static_cast<int>(msd.numStates),

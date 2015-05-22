@@ -13,12 +13,14 @@ namespace pllpp {
 
 class PartitionedData {
   pll_partition * partition = nullptr;
+  int numProbMats;
   public:
   PartitionedData(const ParsedMatrix & parsedMat, const ModelStorageDescription &);
   ~PartitionedData() {
     clear();
   }
   void clear();
+  friend class PhyloCalculator;
 };
 
 } // namespace pllpp
