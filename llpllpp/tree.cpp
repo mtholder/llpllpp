@@ -1,4 +1,5 @@
 #include "llpllpp/tree.hpp"
+#include "pll.h"
 
 namespace pllpp {
 std::unique_ptr<UTree> UTree::parseNewick(const std::string & fn,
@@ -64,6 +65,13 @@ static void set_missing_branch_length_recursive(pll_utree_t * tree,
 void UTree::setMissingBranchLength(double edgeLength) {
   set_missing_branch_length_recursive(pllTree, edgeLength);
   set_missing_branch_length_recursive(pllTree->back, edgeLength);
+}
+
+void UTree::clear() {
+  if (pllTree != nullptr) {
+    pll_destroy_utree(pllTree);
+    pllTree = nullptr;
+  }
 }
 
 } // namespace

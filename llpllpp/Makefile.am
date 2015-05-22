@@ -8,4 +8,5 @@ libllpllpp_la_HEADERS = \
 
 libllpllpp_la_SOURCES = \
 	instance.cpp \
+	parsed_matrix.cpp \
 	tree.cpp
