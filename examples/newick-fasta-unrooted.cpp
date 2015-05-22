@@ -13,7 +13,9 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
   tree->setMissingBranchLength(0.000001);
   auto inpMatrix = ParsedMatrix::parseFasta(fastaFilename, otus);
   auto tipCount = otus->size();
-  ModelStorageDescription msd{NUM_STATES, NUM_RATE_CATS, LLPLL_ATTRIB_ARCH_SSE};
+  ModelStorageDescription msd{NUM_STATES,
+                             NUM_RATE_CATS,
+                             ArchAttribEnum::LLPLL_ATTRIB_ARCH_SSE};
   auto phyCalc = PhyloCalculator(*inpMatrix, msd, *tree);
   inpMatrix.release(); // we have copied the data into the phyCalc, and are done with the raw copy.
   // we only have one block of data, with index= 0

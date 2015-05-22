@@ -28,6 +28,9 @@ class ParsedMatrix {
     return otusShPtr;
   }
   void clear();
+  std::size_t getLength() const {
+    return seqLen;
+  }
 };
 
 } // namespace pllpp

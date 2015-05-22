@@ -10,7 +10,7 @@ std::unique_ptr<UTree> UTree::parseNewick(const std::string & fn,
     throw PLLException(std::string("Could not read a tree from ") + fn);
   }
   // Move
-  const char ** tipNames = nullptr;
+  char ** tipNames = nullptr;
   try {
     if (otus == nullptr) {
       otus = std::make_shared<OTUSet>();

@@ -11,7 +11,7 @@
 #include "llpllpp/easylogging++.hpp"
 
 //
-enum ArchAttribEnum {
+enum class ArchAttribEnum {
   LLPLL_ATTRIB_ARCH_SSE =    0x01,
   LLPLL_ATTRIB_ARCH_AVX =    0x02,
   LLPLL_ATTRIB_ARCH_AVX2 =   0x04,

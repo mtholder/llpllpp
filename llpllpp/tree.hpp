@@ -26,6 +26,9 @@ class UTree {
     return otusShPtr;
   }
   void clear();
+  std::size_t getNumLeaves() const {
+    return (otusShPtr == nullptr ? 0U : otusShPtr->size());
+  }
 };
 
 } // namespace pllpp
