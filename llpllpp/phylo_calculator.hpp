@@ -15,7 +15,7 @@ namespace pllpp {
 class PhyloCalculator {
   PartitionedData partData;
   std::vector<DSCTProbModel> probModelVec;
-  UTree & tree;
+  std::shared_ptr<UTree> tree;
   int edgePMatrixIndex;
   int clv1;
   int clv2;
@@ -30,7 +30,9 @@ class PhyloCalculator {
   public:
   PhyloCalculator(const PhyloCalculator &) = delete;
   PhyloCalculator & operator=(const PhyloCalculator &) = delete;
-  PhyloCalculator(const ParsedMatrix & parsedMat, const ModelStorageDescription &msd, UTree & treeRef);
+  PhyloCalculator(const ParsedMatrix & parsedMat,
+                  const ModelStorageDescription &msd,
+                  std::shared_ptr<UTree> treeRef);
   ~PhyloCalculator() {
     clear();
   }

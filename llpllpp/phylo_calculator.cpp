@@ -4,23 +4,23 @@
 namespace pllpp {
 PhyloCalculator::PhyloCalculator(const ParsedMatrix & parsedMat,
                                  const ModelStorageDescription &msd,
-                                 UTree & treeRef)
+                                 std::shared_ptr<UTree> treePtr)
   :partData(parsedMat, msd),
-  tree(treeRef),
+  tree(treePtr),
   rateCatUpdateCounter{0},
   stateFreqUpdateCounter{0},
   exchangeUpdateCounter{0} {
-  auto otus = tree.getOTUSet();
+  auto otus = tree->getOTUSet();
   assert(otus != nullptr);
-  const int tipCount = static_cast<int>(tree.getNumLeaves());
+  const int tipCount = static_cast<int>(tree->getNumLeaves());
   assert(tipCount == static_cast<int>(parsedMat.getNumRows()));
   probModelVec.emplace_back(msd);
   init_traverse();
 }
 
 void PhyloCalculator::init_traverse() {
-  auto node = tree.pllTree;
-  const int tipCount = static_cast<int>(tree.getNumLeaves());
+  auto node = tree->pllTree;
+  const int tipCount = static_cast<int>(tree->getNumLeaves());
   // allocates (if NULL) and fills:
   //    branch_lengths - lengths of postorder traversal from  node
   //    matrix_indices -- a number to each branch length, (0 to

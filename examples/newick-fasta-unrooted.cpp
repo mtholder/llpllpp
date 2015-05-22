@@ -1,5 +1,6 @@
 #include "llpllpp/llpllpp.hpp"
-#include<iostream>
+#include <iostream>
+#include <iomanip>
 using namespace pllpp;
 int doMain(int argc, char * argv[]);
 void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFilename);
@@ -8,14 +9,13 @@ constexpr unsigned NUM_STATES = 4U;
 constexpr unsigned NUM_RATE_CATS = 4U;
 
 void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFilename) {
-  auto tree = UTree::parseNewick(newickFilename);
-  auto otus = tree->getOTUSet();
+  std::shared_ptr<UTree> tree{std::move(UTree::parseNewick(newickFilename))};
   tree->setMissingBranchLength(0.000001);
-  auto inpMatrix = ParsedMatrix::parseFasta(fastaFilename, otus);
+  auto inpMatrix = ParsedMatrix::parseFasta(fastaFilename, tree->getOTUSet());
   ModelStorageDescription msd{NUM_STATES,
-                             NUM_RATE_CATS,
-                             ArchAttribEnum::LLPLL_ATTRIB_ARCH_SSE};
-  PhyloCalculator phyCalc(*inpMatrix, msd, *tree);
+                              NUM_RATE_CATS,
+                              ArchAttribEnum::LLPLL_ATTRIB_ARCH_SSE};
+  PhyloCalculator phyCalc(*inpMatrix, msd, tree);
   inpMatrix.release(); // we have copied the data into the phyCalc, and are done with the raw copy.
   // we only have one block of data, with index= 0
   auto & model = phyCalc.getModel(0);
@@ -30,7 +30,7 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
   // now ready to calculate the likelihood
   phyCalc.updateProbMatrices(0);
   phyCalc.updatePartials(0);
-  std::cout << "Log-L: " << phyCalc.computeEdgeLogLikelihood(0) << '\n';
+  std::cout << "Log-L: " << std::setprecision(9) << phyCalc.computeEdgeLogLikelihood(0) << '\n';
 }
 
 
