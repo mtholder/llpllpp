@@ -24,6 +24,13 @@ class OTUSet {
     names.push_back(itAddedPair.first->first.c_str());
     return ind;
   }
+  std::size_t getIndex(const std::string & name) const {
+    const auto x = nameToIndex.find(name);
+    if (x == nameToIndex.end()) {
+      throw PLLException(std::string("The name \"") + name + std::string("\" was not found"));
+    }
+    return x->second;
+  }
 };
 
 } // namespace pllpp

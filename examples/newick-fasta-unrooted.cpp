@@ -16,7 +16,7 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
   ModelStorageDescription msd{NUM_STATES,
                              NUM_RATE_CATS,
                              ArchAttribEnum::LLPLL_ATTRIB_ARCH_SSE};
-  auto phyCalc = PhyloCalculator(*inpMatrix, msd, *tree);
+  PhyloCalculator phyCalc(*inpMatrix, msd, *tree);
   inpMatrix.release(); // we have copied the data into the phyCalc, and are done with the raw copy.
   // we only have one block of data, with index= 0
   auto & model = phyCalc.getModel(0);

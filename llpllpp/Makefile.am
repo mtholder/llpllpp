@@ -9,5 +9,6 @@ libllpllpp_la_HEADERS = \
 libllpllpp_la_SOURCES = \
 	instance.cpp \
 	parsed_matrix.cpp \
+	partitioned_data.cpp \
 	phylo_calculator.cpp \
 	tree.cpp

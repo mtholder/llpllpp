@@ -9,16 +9,21 @@
 #include "llpllpp/parsed_matrix.hpp"
 #include "llpllpp/partitioned_data.hpp"
 #include "llpllpp/tree.hpp"
-struct pll_partition;
+
 namespace pllpp {
 
 class PhyloCalculator {
   PartitionedData partData;
   std::vector<DSCTProbModel> probModelVec;
   UTree & tree;
-  pll_partition * partition = nullptr;
   public:
+  PhyloCalculator(const PhyloCalculator &) = delete;
+  PhyloCalculator & operator=(const PhyloCalculator &) = delete;
   PhyloCalculator(const ParsedMatrix & parsedMat, const ModelStorageDescription &msd, UTree & treeRef);
+  ~PhyloCalculator() {
+    clear();
+  }
+  void clear();
   DSCTProbModel & getModel(std::size_t modIndex) {
     return probModelVec.at(modIndex);
   }
