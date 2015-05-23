@@ -9,6 +9,11 @@ This is just a C++ wrapper around the low-level PLL.
 Currently this relies on the "minor" branch of that repo (but only because of
 some `const` stuff - it is not far from working on the master branch).
 
+
+It also uses easyloggingpp which is distributed under an MIT License. See
+  http://github.com/easylogging/ for info on that project. The file from
+  that project is llpllpp/easylogging++.h
+
 # Installation
 
 ## Prerequisites
@@ -41,3 +46,7 @@ You should get:
     ./examples/newick-fasta-unrooted ../data/small.tre ../data/small.fas
     Log-L: -5895.90491
 
+
+## Acknowledgments
+See comments above about usage of [easyloggingpp](https://github.com/easylogging/)
+and [rapidjson](https://github.com/miloyip/rapidjson)
