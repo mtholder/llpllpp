@@ -26,7 +26,9 @@ PartitionedData::PartitionedData(const ParsedMatrix & parsedMat,
   for (std::size_t i = 0; i < static_cast<std::size_t>(tipCount); ++i) {
     const auto name = parsedMat.getName(i);
     const int tip_clv_index = static_cast<int>(otus->getIndex(name));
-    pll_set_tip_states(partition, tip_clv_index, pll_map_nt, parsedMat.getData(i));
+    if (pll_set_tip_states(partition, tip_clv_index, pll_map_nt, parsedMat.getData(i)) == PLL_FAILURE) {
+      throw PLLException(std::string("Problem setting tip for \"") + name + std::string("\""));
+    }
   }
 
 }

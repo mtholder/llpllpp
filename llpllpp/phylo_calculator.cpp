@@ -88,7 +88,7 @@ double PhyloCalculator::computeEdgeLogLikelihood(std::size_t partIndex) {
                                         clv1,
                                         clv2,
                                         edgePMatrixIndex,
-                                        partIndex);
+                                        static_cast<int>(partIndex));
 
 }
 

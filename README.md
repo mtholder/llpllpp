@@ -1,9 +1,13 @@
 # llpllpp
-Is a C++ wrapper around the low-level PLL lib
 
-See https://github.com/xflouris/libpll for the code base that provides 
-  the real functionality!
+Note: libpll for the code base that provides  the real functionality!
+That lib is at: http://www.libpll.org/
 
+However, this repo is wrapping an as-yet-unreleased low-level subset of PLL.
+This is just a C++ wrapper around the low-level PLL.
+
+Currently this relies on the "minor" branch of that repo (but only because of
+some `const` stuff - it is not far from working on the master branch).
 
 # Installation
 
@@ -31,3 +35,9 @@ You also need a modern C++ compiler and autotools
     make installcheck
 
 (though there currently aren't any tests)
+
+You should get:
+
+    ./examples/newick-fasta-unrooted ../data/small.tre ../data/small.fas
+    Log-L: -5895.90491
+
