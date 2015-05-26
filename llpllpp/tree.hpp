@@ -6,12 +6,12 @@
 #include <cassert>
 #include "llpllpp/base_includes.hpp"
 #include "llpllpp/otus.hpp"
-struct tree_noderec;
+struct pll_utree;
 namespace pllpp {
 
 class UTree {
   std::shared_ptr<OTUSet> otusShPtr;
-  tree_noderec * pllTree;
+  pll_utree * pllTree;
   UTree()
     :pllTree(nullptr) {
   }

@@ -18,7 +18,10 @@ class PhyloCalculator {
   std::shared_ptr<UTree> tree;
   int edgePMatrixIndex;
   int clv1;
+  int scaler1Index;
   int clv2;
+  int scaler2Index;
+
   double * edgeLengths = nullptr;
   int * matrixIndices = nullptr;
   pll_operation * operations = nullptr;

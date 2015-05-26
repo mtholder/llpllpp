@@ -41,8 +41,10 @@ void PhyloCalculator::init_traverse() {
                      &matrixIndices,
                      &operations,
                      &edgePMatrixIndex,
-                     &clv1, 
-                     &clv2);
+                     &clv1,
+                     &scaler1Index,
+                     &clv2,
+                     &scaler2Index);
 }
 
 void PhyloCalculator::clear() {
@@ -86,7 +88,9 @@ void PhyloCalculator::updatePartials(std::size_t ) {
 double PhyloCalculator::computeEdgeLogLikelihood(std::size_t partIndex) {
   return pll_compute_edge_loglikelihood(partData.partition, 
                                         clv1,
+                                        scaler1Index,
                                         clv2,
+                                        scaler2Index,
                                         edgePMatrixIndex,
                                         static_cast<int>(partIndex));
 
