@@ -1,7 +1,7 @@
 #if !defined __LLPLLPLUSPLUS_BASE_INCLUDES_HPP__
 #define __LLPLLPLUSPLUS_BASE_INCLUDES_HPP__
 // This file is included by any header in the library.
-//  It holds the very few defines that we use and  includes the logger. 
+//  It holds the very few defines that we use and includes the logger. 
 
 #include <cassert>
 #pragma clang diagnostic ignored "-Wpadded"

@@ -38,6 +38,13 @@ class DSCTProbModel {
     :rateHet(msd.numRateCats),
     stateFrequencies(msd.numStates, 1.0/(static_cast<double>(msd.numStates))) {
     stateFreqSetCounter = 1;
+    if (exchangeParameters.empty()) {
+      if (msd.isParameterizedByFullRateMatrix()) {
+        exchangeSetCounter = 1;
+        const unsigned numRates = (msd.numStates*(msd.numStates - 1))/2;
+        exchangeParameters.assign(numRates, 1.0);
+      }
+    }
   }
   DSCTProbModel(const ModelStorageDescription & msd,
                 const std::vector<double> &stateFreqVec,
@@ -63,15 +70,23 @@ class DSCTProbModel {
   RateHetModel & getRateHet() {
     return rateHet;
   }
-  void setStateFrequencies(const std::vector<double> v) {
+  void setStateFrequencies(const std::vector<double> & v) {
     assert(v.size() == stateFrequencies.size());
-    stateFreqSetCounter += 1;
-    stateFrequencies = v;
+    setStateFrequenciesPtr(&v[0]);
   }
-  void setExchangeabilityParams(const std::vector<double> v) {
+  void setExchangeabilityParams(const std::vector<double> & v) {
     assert(exchangeParameters.empty() || v.size() == exchangeParameters.size());
+    setExchangeabilityParamsPtr(&v[0]);
+  }
+   void setStateFrequenciesPtr(const double * v) {
+    assert(v != nullptr);
+    stateFreqSetCounter += 1;
+    stateFrequencies.assign(v, v + stateFrequencies.size());
+  }
+  void setExchangeabilityParamsPtr(const double * v) {
+    assert(v != nullptr);
     exchangeSetCounter += 1;
-    exchangeParameters = v;
+    exchangeParameters.assign(v, v + exchangeParameters.size());
   }
   const std::vector<double> & getStateFrequencies() const {
     return stateFrequencies;

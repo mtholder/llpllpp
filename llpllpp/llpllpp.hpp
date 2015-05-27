@@ -8,4 +8,5 @@
 #include "llpllpp/phylo_calculator.hpp"
 #include "llpllpp/tree.hpp"
 #include "llpllpp/util.hpp"
+#include "llpllpp/aa_models.hpp"
 #endif
