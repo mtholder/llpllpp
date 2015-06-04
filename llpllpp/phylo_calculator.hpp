@@ -12,24 +12,26 @@
 struct pll_operation;
 namespace pllpp {
 
+class _OperationContainer;
+
 class PhyloCalculator {
   PartitionedData partData;
   std::vector<DSCTProbModel> probModelVec;
   std::shared_ptr<UTree> tree;
-  int edgePMatrixIndex;
-  int clv1;
-  int scaler1Index;
-  int clv2;
-  int scaler2Index;
-
-  double * edgeLengths = nullptr;
-  int * matrixIndices = nullptr;
-  pll_operation * operations = nullptr;
-  int numPendingOperations = 0;
+  UTree::node_ptr virtualRoot = nullptr;
+  std::vector<double> edgeLengths;
+  std::vector<int> matrixIndices;
+  _OperationContainer * opContainerPtr;
+  std::vector<UTree::node_ptr> traversalBuffer;
   typedef std::vector<unsigned long> UpdateCounterVec;
   UpdateCounterVec rateCatUpdateCounter;
   UpdateCounterVec stateFreqUpdateCounter;
   UpdateCounterVec exchangeUpdateCounter;
+  // convenience. copies of limits..
+  std::size_t tipCount = 0U;
+  std::size_t innerNodesCount = 0U;
+  std::size_t nodesCount = 0U;
+  std::size_t branchCount = 0U;
   public:
   PhyloCalculator(const PhyloCalculator &) = delete;
   PhyloCalculator & operator=(const PhyloCalculator &) = delete;

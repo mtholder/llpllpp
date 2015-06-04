@@ -5,32 +5,29 @@ namespace pllpp {
 std::unique_ptr<UTree> UTree::parseNewick(const std::string & fn,
                                           std::shared_ptr<OTUSet> otus) {
   int tipCount;
-  pll_utree_t * tree = pll_parse_newick_utree(fn.c_str(), &tipCount);
+  pll_utree_t * tree = pll_utree_parse_newick(fn.c_str(), &tipCount);
   if (tree == nullptr) {
     throw PLLException(std::string("Could not read a tree from ") + fn);
   }
   // Move
-  char ** tipNames = nullptr;
+  std::vector<node_ptr> tipNodes;
+  tipNodes.resize(static_cast<std::size_t>(tipCount));
+
   try {
     if (otus == nullptr) {
       otus = std::make_shared<OTUSet>();
-      tipNames = pll_query_utree_tipnames(tree, tipCount);
-      for (auto i = 0 ; i < tipCount; ++i) {
-        auto j = otus->addNewName(tipNames[i]);
+      pll_utree_query_tipnodes(tree, &(tipNodes[0]));
+      for (auto i = 0UL ; i < static_cast<std::size_t>(tipCount); ++i) {
+        assert(tipNodes[i] != nullptr);
+        auto j = otus->addNewName(tipNodes[i]->label);
         assert(j == static_cast<std::size_t>(i));
       }
     } else {
       NOT_IMPLEMENTED
     }
   } catch (...) {
-    pll_destroy_utree(tree);
-    if (tipNames != nullptr) {
-      free(tipNames);
-    }
+    pll_utree_destroy(tree);
     throw;
-  }
-  if (tipNames != nullptr) {
-    free(tipNames);
   }
   // Now transfer to a new UTree
 
@@ -69,7 +66,7 @@ void UTree::setMissingBranchLength(double edgeLength) {
 
 void UTree::clear() {
   if (pllTree != nullptr) {
-    pll_destroy_utree(pllTree);
+    pll_utree_destroy(pllTree);
     pllTree = nullptr;
   }
 }
