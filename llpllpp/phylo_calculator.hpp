@@ -12,6 +12,8 @@
 struct pll_operation;
 namespace pllpp {
 
+class _OperationContainer;
+
 class PhyloCalculator {
   PartitionedData partData;
   std::vector<DSCTProbModel> probModelVec;
@@ -22,9 +24,10 @@ class PhyloCalculator {
   int clv2;
   int scaler2Index;
 
-  double * edgeLengths = nullptr;
-  int * matrixIndices = nullptr;
-  pll_operation * operations = nullptr;
+  std::vector<double> edgeLengths;
+  std::vector<int> matrixIndices;
+  _OperationContainer * opContainerPtr;
+  std::vector<UTree::node_ptr> traversalBuffer;
   int numPendingOperations = 0;
   typedef std::vector<unsigned long> UpdateCounterVec;
   UpdateCounterVec rateCatUpdateCounter;

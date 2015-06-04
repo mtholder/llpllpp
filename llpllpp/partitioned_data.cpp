@@ -26,7 +26,7 @@ PartitionedData::PartitionedData(const ParsedMatrix & parsedMat,
   const auto numModels = 1; // for this ctor only
   numProbMats = 2*tipCount - 3;
   const auto numScaleBuffers = tipCount - 2;
-  partition = pll_create_partition(tipCount,
+  partition = pll_partition_create(tipCount,
                                    tipCount - 2,
                                    static_cast<int>(msd.numStates),
                                    static_cast<int>(parsedMat.getLength()),
@@ -55,7 +55,7 @@ PartitionedData::PartitionedData(const ParsedMatrix & parsedMat,
 
 void PartitionedData::clear() {
   if (partition != nullptr) {
-    pll_destroy_partition(partition);
+    pll_partition_destroy(partition);
     partition = nullptr;
   }
 }
