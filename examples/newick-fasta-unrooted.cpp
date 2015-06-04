@@ -29,8 +29,8 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
   model.setExchangeabilityParams(subsParams);
   model.getRateHet().setAlphaOfGammaDist(1.0);
   // now ready to calculate the likelihood
-  phyCalc.updatePartials(0);
   phyCalc.updateProbMatrices(0);
+  phyCalc.updatePartials(0);
   std::cout << "Log-L: " << std::setprecision(9) << phyCalc.computeEdgeLogLikelihood(0) << '\n';
 }
 
