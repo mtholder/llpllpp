@@ -16,14 +16,45 @@ namespace pllpp {
 
 class _OperationContainer {
   public:
-  _OperationContainer(std::size_t n)
-    :opVec(n) {
+  _OperationContainer(std::size_t n,
+                      std::vector<UTree::node_ptr> & traversalBuffer,
+                      int traversalSize,
+                      std::vector<double> &  edgeLengths,
+                      std::vector<int> & matrixIndices)
+    :opVec(n),
+    traversalBufferRef(traversalBuffer),
+    edgeLengthsRef(edgeLengths),
+    matrixIndicesRef(matrixIndices) {
+    createOps(traversalSize);
+  }
+  void createOps(int traversalSize) {
+    //  given the computed traversal descriptor, generate the operations
+    //    structure, and the corresponding probability matrix indices that
+    //    may need recomputing 
+    pll_utree_create_operations(&(traversalBufferRef[0]),
+                                traversalSize,
+                                &(edgeLengthsRef[0]),
+                                &(matrixIndicesRef[0]),
+                                ops(),
+                                &matrixCount,
+                                &numPendingOperations);
+  }
+  int getNumPendingOps() const {
+    return numPendingOperations;
+  }
+  int getNumProbMatToCalc() const {
+    return matrixCount;
   }
   pll_operation_t * ops() {
     return &(opVec[0]);
   }
   private:
   std::vector<pll_operation_t> opVec;
+  std::vector<UTree::node_ptr> & traversalBufferRef;
+  std::vector<double> &  edgeLengthsRef;
+  std::vector<int> & matrixIndicesRef;
+  int matrixCount = 0;
+  int numPendingOperations = 0;
   friend class PhyloCalculator;
 };
 
@@ -38,23 +69,21 @@ PhyloCalculator::PhyloCalculator(const ParsedMatrix & parsedMat,
   exchangeUpdateCounter{0} {
   auto otus = tree->getOTUSet();
   assert(otus != nullptr);
-  const int tipCount = static_cast<int>(tree->getNumLeaves());
-  assert(tipCount == static_cast<int>(parsedMat.getNumRows()));
+  tipCount = tree->getNumLeaves();
+  assert(tipCount == parsedMat.getNumRows());
   probModelVec.emplace_back(msd);
   assert(tipCount > 2);
-  const std::size_t innerNodesCount = static_cast<std::size_t>(tipCount) - 2;
-  const std::size_t nodesCount = innerNodesCount + static_cast<std::size_t>(tipCount);
-  const std::size_t branchCount = nodesCount - 1;
+  innerNodesCount = tipCount - 2;
+  nodesCount = innerNodesCount + tipCount;
+  branchCount = nodesCount - 1;
   edgeLengths.resize(branchCount);
   matrixIndices.resize(branchCount);
-  opContainerPtr = new _OperationContainer(innerNodesCount);
   traversalBuffer.resize(nodesCount);
   init_traverse();
 }
 
 void PhyloCalculator::init_traverse() {
-  auto node = tree->pllTree;
-  const int tipCount = static_cast<int>(tree->getNumLeaves());
+  virtualRoot = tree->pllTree;
   // allocates (if NULL) and fills:
   //    branch_lengths - lengths of postorder traversal from  node
   //    matrix_indices -- a number to each branch length, (0 to
@@ -64,15 +93,15 @@ void PhyloCalculator::init_traverse() {
   //    operations - filled to compute all inner CLVs
   //assert(isInnerTernaryNode(node))
   // edge_matrix_index will point to the edge between node and node->back, 
-  // clv1 is set to the index of node->back and 
-  // clv2 to the index of node. 
-  // edge_matrix_index, clv1, and clv2 can be used to evaluate the log-likelihood using the
-  //   pll_compute_edge_loglikelihood function 
-  numPendingOperations = tipCount - 2;
-  const auto rc = pll_utree_traverse(node,
-                                    cb_full_traversal,
-                                    &(traversalBuffer[0]));
-  assert(rc != -1);
+  const auto travLen = pll_utree_traverse(virtualRoot,
+                                          cb_full_traversal,
+                                          &(traversalBuffer[0]));
+  assert(travLen >= 0);
+  opContainerPtr = new _OperationContainer(innerNodesCount,
+                                           traversalBuffer,
+                                           travLen,
+                                           edgeLengths,
+                                           matrixIndices);
 }
 
 void PhyloCalculator::clear() {
@@ -109,21 +138,23 @@ void PhyloCalculator::updateProbMatrices(std::size_t partIndex) {
                            partIndI, 
                            &(matrixIndices[0]), 
                            &(edgeLengths[0]), 
-                           partData.numProbMats);
+                           opContainerPtr->getNumProbMatToCalc());
 
 }
 
 void PhyloCalculator::updatePartials(std::size_t ) {
-  pll_update_partials(partData.partition, opContainerPtr->ops(), numPendingOperations);
+  pll_update_partials(partData.partition,
+                      opContainerPtr->ops(),
+                      opContainerPtr->getNumPendingOps());
 }
 
 double PhyloCalculator::computeEdgeLogLikelihood(std::size_t partIndex) {
   return pll_compute_edge_loglikelihood(partData.partition, 
-                                        clv1,
-                                        scaler1Index,
-                                        clv2,
-                                        scaler2Index,
-                                        edgePMatrixIndex,
+                                        virtualRoot->clv_index,
+                                        virtualRoot->scaler_index,
+                                        virtualRoot->back->clv_index,
+                                        virtualRoot->back->scaler_index,
+                                        virtualRoot->pmatrix_index,
                                         static_cast<int>(partIndex));
 
 }

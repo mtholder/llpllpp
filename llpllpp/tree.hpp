@@ -10,7 +10,9 @@ struct pll_utree;
 namespace pllpp {
 
 class UTree {
+  public:
   using node_ptr = pll_utree *;
+  private:
   std::shared_ptr<OTUSet> otusShPtr;
   pll_utree * pllTree;
   UTree()
