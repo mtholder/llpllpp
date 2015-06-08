@@ -15,6 +15,7 @@ class WrappedTree {
   public:
   using node_type = W;
   using node_ptr = W *;
+  using const_node_ptr = const W *;
   using wtree_type = WrappedTree<W>;
   private:
   std::shared_ptr<OTUSet> otusShPtr;
@@ -39,6 +40,7 @@ class WrappedTree {
   private:
   template<typename T> friend class PhyloCalculator;
 };
+
 using UTree = WrappedTree<pll_utree>;
 using RTree = WrappedTree<pll_rtree>;
 

@@ -3,18 +3,70 @@
 #include <cstdlib>
 extern "C" {
 /* a callback function for performing a full traversal */
+typedef struct
+{
+  int clv_valid;
+} node_info_t;
+
+
+
 static int cb_full_utraversal(pll_utree_t * node);
 static int cb_full_rtraversal(pll_rtree_t * node);
+static int cb_partial_utraversal(pll_utree_t * node);
+static int cb_partial_rtraversal(pll_rtree_t * node);
 
-static int cb_full_rtraversal(pll_rtree_t *)
-{
+static int cb_full_rtraversal(pll_rtree_t *) {
   return 1;
 }
 
-static int cb_full_utraversal(pll_utree_t *)
-{
+static int cb_full_utraversal(pll_utree_t *) {
   return 1;
 }
+
+static int cb_partial_rtraversal(pll_rtree_t * ) {
+  assert(0);
+  return 1;
+}
+// from partial.c example in PLL a callback function for performing a partial traversal
+static int cb_partial_utraversal(pll_utree_t * node) {
+  node_info_t * node_info;
+  // if we don't want tips in the traversal we must return 0. here we allow tips
+  if (!node->next) {
+    return 1;
+  }
+  // get the data element from the node and check if the CLV vector is
+  //   oriented in the direction that we want to traverse. If the data
+  //   element is not yet allocated then we allocate it, set the direction
+  //   and instruct the traversal routine to place the node in the traversal array
+  //   by returning 1 
+  node_info = (node_info_t *)(node->data);
+  if (!node_info) {
+    // allocate data element 
+    node->data             = (node_info_t *)calloc(1,sizeof(node_info_t));
+    node->next->data       = (node_info_t *)calloc(1,sizeof(node_info_t));
+    node->next->next->data = (node_info_t *)calloc(1,sizeof(node_info_t));
+    // set orientation on selected direction and traverse the subtree
+    node_info = (node_info_t *) node->data;
+    node_info->clv_valid = 1;
+    return 1;
+  }
+  
+  // if the data element was already there and the CLV on this direction is
+  //   set, i.e. the CLV is valid, we instruct the traversal routine not to
+  //   traverse the subtree rooted in this node/direction by returning 0 
+  if (node_info->clv_valid) {
+    return 0;
+  }
+  // otherwise, set orientation on selected direction
+  node_info->clv_valid = 1;
+  // reset orientation on the other two directions and return 1 to traverse this subtree 
+  node_info = (node_info_t *) node->next->data;
+  node_info->clv_valid = 0;
+  node_info = (node_info_t *) node->next->next->data;
+  node_info->clv_valid = 0;
+  return 1;
+}
+
 
 } // end extern C
 
@@ -82,32 +134,44 @@ inline void _OperationContainer<pll_rtree_t>::createOps(int traversalSize) {
 }
 
 template<typename T>
-int _callPLLTraverse(T * node, int cb(T*), T ** travBuff);
+int _callPLLTraverse(const T * node, int cb(T*), T ** travBuff);
 template<typename T>
-int _callFullPLLTraverse(T * node, T ** travBuff);
+int _callFullPLLTraverse(const T * node, T ** travBuff);
+template<typename T>
+int _callPartialPLLTraverse(const T * node, T ** travBuff);
 template<typename T>
 std::size_t _tipCountToInnerNodeCount(std::size_t tipCount);
 template<typename T>
 bool _isRooted();
 
 template<>
-inline int _callPLLTraverse<pll_utree_t>(pll_utree_t * node, int cb(pll_utree_t *), pll_utree_t ** travBuff) {
-  return pll_utree_traverse(node, cb, travBuff);
+inline int _callPLLTraverse<pll_utree_t>(const pll_utree_t * node, int cb(pll_utree_t *), pll_utree_t ** travBuff) {
+  return pll_utree_traverse(const_cast<pll_utree_t *>(node), cb, travBuff);
 }
 
 template<>
-inline int _callFullPLLTraverse<pll_utree_t>(pll_utree_t * node, pll_utree_t ** travBuff) {
+inline int _callFullPLLTraverse<pll_utree_t>(const pll_utree_t * node, pll_utree_t ** travBuff) {
   return _callPLLTraverse<pll_utree_t>(node,  cb_full_utraversal, travBuff);
 }
 
 template<>
-inline int _callPLLTraverse<pll_rtree_t>(pll_rtree_t * node, int cb(pll_rtree_t *), pll_rtree_t ** travBuff) {
-  return pll_rtree_traverse(node, cb, travBuff);
+inline int _callPartialPLLTraverse<pll_utree_t>(const pll_utree_t * node, pll_utree_t ** travBuff) {
+  return _callPLLTraverse<pll_utree_t>(node,  cb_partial_utraversal, travBuff);
 }
 
 template<>
-inline int _callFullPLLTraverse<pll_rtree_t>(pll_rtree_t * node, pll_rtree_t ** travBuff) {
+inline int _callPLLTraverse<pll_rtree_t>(const pll_rtree_t * node, int cb(pll_rtree_t *), pll_rtree_t ** travBuff) {
+  return pll_rtree_traverse(const_cast<pll_rtree_t *>(node), cb, travBuff);
+}
+
+template<>
+inline int _callFullPLLTraverse<pll_rtree_t>(const pll_rtree_t * node, pll_rtree_t ** travBuff) {
   return _callPLLTraverse<pll_rtree_t>(node,  cb_full_rtraversal, travBuff);
+}
+
+template<>
+inline int _callPartialPLLTraverse<pll_rtree_t>(const pll_rtree_t * node, pll_rtree_t ** travBuff) {
+  return _callPLLTraverse<pll_rtree_t>(node,  cb_partial_rtraversal, travBuff);
 }
 
 template<>
@@ -152,11 +216,11 @@ PhyloCalculator<W>::PhyloCalculator(const ParsedMatrix & parsedMat,
   edgeLengths.resize(branchCount);
   matrixIndices.resize(branchCount);
   traversalBuffer.resize(nodesCount);
-  init_traverse();
+  initTraverse();
 }
 
 template<typename W>
-void PhyloCalculator<W>::init_traverse() {
+void PhyloCalculator<W>::initTraverse() {
   virtualRoot = tree->pllTree;
   // allocates (if NULL) and fills:
   //    branch_lengths - lengths of postorder traversal from  node
@@ -176,6 +240,17 @@ void PhyloCalculator<W>::init_traverse() {
                                                       edgeLengths,
                                                       matrixIndices);
 }
+
+template<typename W>
+void PhyloCalculator<W>::partialTraverse(const_node_ptr nv) {
+  virtualRoot = nv;
+  const auto travLen = _callPartialPLLTraverse<node_type>(virtualRoot,
+                                                          &(traversalBuffer[0]));
+  if (travLen > 0) {
+    opContainerPtr->createOps(travLen);
+  }
+}
+
 
 template<typename W>
 void PhyloCalculator<W>::clear() {
@@ -215,6 +290,19 @@ void PhyloCalculator<W>::updateProbMatrices(std::size_t partIndex) {
                            &(edgeLengths[0]), 
                            opContainerPtr->getNumProbMatToCalc());
 
+}
+
+
+template<>
+void PhyloCalculator<UTree>::_fillInnerNodesArray(node_ptr * arr) const {
+  assert(arr != nullptr);
+  pll_utree_query_innernodes(tree->pllTree, arr);
+}
+
+template<>
+void PhyloCalculator<RTree>::_fillInnerNodesArray(node_ptr * arr) const {
+  assert(arr != nullptr);
+  pll_rtree_query_innernodes(tree->pllTree, arr);
 }
 
 template<typename W>
