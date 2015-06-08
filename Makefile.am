@@ -1,4 +1,4 @@
-SUBDIRS = llpllpp $(MAYBE_TEST_DIR) examples
+SUBDIRS = llpllpp examples  $(MAYBE_TEST_DIR)
 
 pkgconfigdir= $(libdir)/pkgconfig
 pkgconfig_DATA= llpllppv.0.pc
