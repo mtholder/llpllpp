@@ -86,7 +86,9 @@ int _callPLLTraverse(T * node, int cb(T*), T ** travBuff);
 template<typename T>
 int _callFullPLLTraverse(T * node, T ** travBuff);
 template<typename T>
-inline std::size_t _tipCountToInnerNodeCount(std::size_t tipCount);
+std::size_t _tipCountToInnerNodeCount(std::size_t tipCount);
+template<typename T>
+bool _isRooted();
 
 template<>
 inline int _callPLLTraverse<pll_utree_t>(pll_utree_t * node, int cb(pll_utree_t *), pll_utree_t ** travBuff) {
@@ -118,11 +120,21 @@ inline std::size_t _tipCountToInnerNodeCount<RTree>(std::size_t tipCount) {
   return tipCount - 1;
 }
 
+template<>
+inline bool _isRooted<UTree>() {
+  return false;
+}
+
+template<>
+inline bool _isRooted<RTree>() {
+  return true;
+}
+
 template<typename W>
 PhyloCalculator<W>::PhyloCalculator(const ParsedMatrix & parsedMat,
                                     const ModelStorageDescription &msd,
                                     std::shared_ptr<W> treePtr)
-  :partData(parsedMat, msd),
+  :partData(parsedMat, msd, _isRooted<W>()),
   tree(treePtr),
   opContainerPtr(nullptr),
   rateCatUpdateCounter{0},
