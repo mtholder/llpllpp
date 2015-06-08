@@ -83,9 +83,10 @@ inline void _OperationContainer<pll_rtree_t>::createOps(int traversalSize) {
 
 template<typename T>
 int _callPLLTraverse(T * node, int cb(T*), T ** travBuff);
-
 template<typename T>
 int _callFullPLLTraverse(T * node, T ** travBuff);
+template<typename T>
+inline std::size_t _tipCountToInnerNodeCount(std::size_t tipCount);
 
 template<>
 inline int _callPLLTraverse<pll_utree_t>(pll_utree_t * node, int cb(pll_utree_t *), pll_utree_t ** travBuff) {
@@ -107,6 +108,15 @@ inline int _callFullPLLTraverse<pll_rtree_t>(pll_rtree_t * node, pll_rtree_t ** 
   return _callPLLTraverse<pll_rtree_t>(node,  cb_full_rtraversal, travBuff);
 }
 
+template<>
+inline std::size_t _tipCountToInnerNodeCount<UTree>(std::size_t tipCount) {
+  return tipCount - 2;
+}
+
+template<>
+inline std::size_t _tipCountToInnerNodeCount<RTree>(std::size_t tipCount) {
+  return tipCount - 1;
+}
 
 template<typename W>
 PhyloCalculator<W>::PhyloCalculator(const ParsedMatrix & parsedMat,
@@ -124,7 +134,7 @@ PhyloCalculator<W>::PhyloCalculator(const ParsedMatrix & parsedMat,
   assert(tipCount == parsedMat.getNumRows());
   probModelVec.emplace_back(msd);
   assert(tipCount > 2);
-  innerNodesCount = tipCount - 2;
+  innerNodesCount = _tipCountToInnerNodeCount<W>(tipCount);
   nodesCount = innerNodesCount + tipCount;
   branchCount = nodesCount - 1;
   edgeLengths.resize(branchCount);
