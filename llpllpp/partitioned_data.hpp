@@ -20,7 +20,7 @@ class PartitionedData {
     clear();
   }
   void clear();
-  friend class PhyloCalculator;
+  template<typename T> friend class PhyloCalculator;
 };
 
 } // namespace pllpp
