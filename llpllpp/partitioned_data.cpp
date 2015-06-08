@@ -18,16 +18,17 @@ const unsigned * getMapForEncoding(DataCharEncodings d) {
 }
 
 PartitionedData::PartitionedData(const ParsedMatrix & parsedMat,
-                                 const ModelStorageDescription &msd) {
+                                 const ModelStorageDescription &msd,
+                                 const bool rootedSize) {
   auto otus = parsedMat.getOTUSet();
   assert(otus != nullptr);
   const int tipCount = static_cast<int>(otus->size());
   assert(tipCount == static_cast<int>(parsedMat.getNumRows()));
   const auto numModels = 1; // for this ctor only
-  numProbMats = 2*tipCount - 3;
-  const auto numScaleBuffers = tipCount - 2;
+  numProbMats = 2*tipCount - (rootedSize ? 2 : 3);
+  const auto numScaleBuffers = tipCount - (rootedSize ? 1 : 2); // -1 for rooted, -2 for unrooted. @NOTOPTIMIZED
   partition = pll_partition_create(tipCount,
-                                   tipCount - 2,
+                                   tipCount - 1,
                                    static_cast<int>(msd.numStates),
                                    static_cast<int>(parsedMat.getLength()),
                                    numModels,

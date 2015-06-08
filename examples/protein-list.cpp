@@ -17,7 +17,7 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
                               NUM_STATES,
                               NUM_RATE_CATS,
                               ArchAttribEnum::LLPLL_ATTRIB_ARCH_SSE};
-  PhyloCalculator phyCalc(*inpMatrix, msd, tree);
+  UPhyloCalculator phyCalc(*inpMatrix, msd, tree);
   inpMatrix.release(); // we have copied the data into the phyCalc, and are done with the raw copy.
   // we only have one block of data, with index= 0
   auto & model = phyCalc.getModel(0);
@@ -28,7 +28,7 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
     phyCalc.updateProbMatrices(0);
     phyCalc.updatePartials(0);
     std::cout << "Log-L (" << aaMod.getName() << "): "
-              << std::setprecision(9) << phyCalc.computeEdgeLogLikelihood(0) << '\n';
+              << std::setprecision(9) << phyCalc.computeLogLikelihood(0) << '\n';
   }
 }
 

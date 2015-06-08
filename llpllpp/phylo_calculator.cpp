@@ -3,9 +3,15 @@
 #include <cstdlib>
 extern "C" {
 /* a callback function for performing a full traversal */
-static int cb_full_traversal(pll_utree_t * node);
+static int cb_full_utraversal(pll_utree_t * node);
+static int cb_full_rtraversal(pll_rtree_t * node);
 
-static int cb_full_traversal(pll_utree_t *)
+static int cb_full_rtraversal(pll_rtree_t *)
+{
+  return 1;
+}
+
+static int cb_full_utraversal(pll_utree_t *)
 {
   return 1;
 }
@@ -13,11 +19,11 @@ static int cb_full_traversal(pll_utree_t *)
 } // end extern C
 
 namespace pllpp {
-
+template<typename T>
 class _OperationContainer {
   public:
   _OperationContainer(std::size_t n,
-                      std::vector<UTree::node_ptr> & traversalBuffer,
+                      std::vector<T *> & traversalBuffer,
                       int traversalSize,
                       std::vector<double> &  edgeLengths,
                       std::vector<int> & matrixIndices)
@@ -27,18 +33,7 @@ class _OperationContainer {
     matrixIndicesRef(matrixIndices) {
     createOps(traversalSize);
   }
-  void createOps(int traversalSize) {
-    //  given the computed traversal descriptor, generate the operations
-    //    structure, and the corresponding probability matrix indices that
-    //    may need recomputing 
-    pll_utree_create_operations(&(traversalBufferRef[0]),
-                                traversalSize,
-                                &(edgeLengthsRef[0]),
-                                &(matrixIndicesRef[0]),
-                                ops(),
-                                &matrixCount,
-                                &numPendingOperations);
-  }
+  void createOps(int traversalSize);
   int getNumPendingOps() const {
     return numPendingOperations;
   }
@@ -50,18 +45,96 @@ class _OperationContainer {
   }
   private:
   std::vector<pll_operation_t> opVec;
-  std::vector<UTree::node_ptr> & traversalBufferRef;
+  std::vector<T *> & traversalBufferRef;
   std::vector<double> &  edgeLengthsRef;
   std::vector<int> & matrixIndicesRef;
   int matrixCount = 0;
   int numPendingOperations = 0;
-  friend class PhyloCalculator;
+  template<typename W> friend class PhyloCalculator;
 };
 
-PhyloCalculator::PhyloCalculator(const ParsedMatrix & parsedMat,
-                                 const ModelStorageDescription &msd,
-                                 std::shared_ptr<UTree> treePtr)
-  :partData(parsedMat, msd),
+template <>
+inline void _OperationContainer<pll_utree_t>::createOps(int traversalSize) {
+    //  given the computed traversal descriptor, generate the operations
+    //    structure, and the corresponding probability matrix indices that
+    //    may need recomputing 
+    pll_utree_create_operations(&(traversalBufferRef[0]),
+                                traversalSize,
+                                &(edgeLengthsRef[0]),
+                                &(matrixIndicesRef[0]),
+                                ops(),
+                                &matrixCount,
+                                &numPendingOperations);
+}
+
+template <>
+inline void _OperationContainer<pll_rtree_t>::createOps(int traversalSize) {
+    //  given the computed traversal descriptor, generate the operations
+    //    structure, and the corresponding probability matrix indices that
+    //    may need recomputing 
+    pll_rtree_create_operations(&(traversalBufferRef[0]),
+                                traversalSize,
+                                &(edgeLengthsRef[0]),
+                                &(matrixIndicesRef[0]),
+                                ops(),
+                                &matrixCount,
+                                &numPendingOperations);
+}
+
+template<typename T>
+int _callPLLTraverse(T * node, int cb(T*), T ** travBuff);
+template<typename T>
+int _callFullPLLTraverse(T * node, T ** travBuff);
+template<typename T>
+std::size_t _tipCountToInnerNodeCount(std::size_t tipCount);
+template<typename T>
+bool _isRooted();
+
+template<>
+inline int _callPLLTraverse<pll_utree_t>(pll_utree_t * node, int cb(pll_utree_t *), pll_utree_t ** travBuff) {
+  return pll_utree_traverse(node, cb, travBuff);
+}
+
+template<>
+inline int _callFullPLLTraverse<pll_utree_t>(pll_utree_t * node, pll_utree_t ** travBuff) {
+  return _callPLLTraverse<pll_utree_t>(node,  cb_full_utraversal, travBuff);
+}
+
+template<>
+inline int _callPLLTraverse<pll_rtree_t>(pll_rtree_t * node, int cb(pll_rtree_t *), pll_rtree_t ** travBuff) {
+  return pll_rtree_traverse(node, cb, travBuff);
+}
+
+template<>
+inline int _callFullPLLTraverse<pll_rtree_t>(pll_rtree_t * node, pll_rtree_t ** travBuff) {
+  return _callPLLTraverse<pll_rtree_t>(node,  cb_full_rtraversal, travBuff);
+}
+
+template<>
+inline std::size_t _tipCountToInnerNodeCount<UTree>(std::size_t tipCount) {
+  return tipCount - 2;
+}
+
+template<>
+inline std::size_t _tipCountToInnerNodeCount<RTree>(std::size_t tipCount) {
+  return tipCount - 1;
+}
+
+template<>
+inline bool _isRooted<UTree>() {
+  return false;
+}
+
+template<>
+inline bool _isRooted<RTree>() {
+  return true;
+}
+
+template<typename W>
+PhyloCalculator<W>::PhyloCalculator(const ParsedMatrix & parsedMat,
+                                    const ModelStorageDescription &msd,
+                                    std::shared_ptr<W> treePtr)
+  :partData(parsedMat, msd, _isRooted<W>()),
   tree(treePtr),
   opContainerPtr(nullptr),
   rateCatUpdateCounter{0},
@@ -73,7 +146,7 @@ PhyloCalculator::PhyloCalculator(const ParsedMatrix & parsedMat,
   assert(tipCount == parsedMat.getNumRows());
   probModelVec.emplace_back(msd);
   assert(tipCount > 2);
-  innerNodesCount = tipCount - 2;
+  innerNodesCount = _tipCountToInnerNodeCount<W>(tipCount);
   nodesCount = innerNodesCount + tipCount;
   branchCount = nodesCount - 1;
   edgeLengths.resize(branchCount);
@@ -82,7 +155,8 @@ PhyloCalculator::PhyloCalculator(const ParsedMatrix & parsedMat,
   init_traverse();
 }
 
-void PhyloCalculator::init_traverse() {
+template<typename W>
+void PhyloCalculator<W>::init_traverse() {
   virtualRoot = tree->pllTree;
   // allocates (if NULL) and fills:
   //    branch_lengths - lengths of postorder traversal from  node
@@ -93,18 +167,18 @@ void PhyloCalculator::init_traverse() {
   //    operations - filled to compute all inner CLVs
   //assert(isInnerTernaryNode(node))
   // edge_matrix_index will point to the edge between node and node->back, 
-  const auto travLen = pll_utree_traverse(virtualRoot,
-                                          cb_full_traversal,
-                                          &(traversalBuffer[0]));
+  const auto travLen = _callFullPLLTraverse<node_type>(virtualRoot,
+                                                       &(traversalBuffer[0]));
   assert(travLen >= 0);
-  opContainerPtr = new _OperationContainer(innerNodesCount,
-                                           traversalBuffer,
-                                           travLen,
-                                           edgeLengths,
-                                           matrixIndices);
+  opContainerPtr = new _OperationContainer<node_type>(innerNodesCount,
+                                                      traversalBuffer,
+                                                      travLen,
+                                                      edgeLengths,
+                                                      matrixIndices);
 }
 
-void PhyloCalculator::clear() {
+template<typename W>
+void PhyloCalculator<W>::clear() {
   partData.clear();
   if (opContainerPtr) {
     delete opContainerPtr;
@@ -112,7 +186,8 @@ void PhyloCalculator::clear() {
   }
 }
 
-void PhyloCalculator::updateProbMatrices(std::size_t partIndex) {
+template<typename W>
+void PhyloCalculator<W>::updateProbMatrices(std::size_t partIndex) {
   const int partIndI = static_cast<int>(partIndex);
   const auto & model = getModel(partIndex);
   const auto sfc = model.getStateFreqCounter();
@@ -142,13 +217,15 @@ void PhyloCalculator::updateProbMatrices(std::size_t partIndex) {
 
 }
 
-void PhyloCalculator::updatePartials(std::size_t ) {
+template<typename W>
+void PhyloCalculator<W>::updatePartials(std::size_t ) {
   pll_update_partials(partData.partition,
                       opContainerPtr->ops(),
                       opContainerPtr->getNumPendingOps());
 }
 
-double PhyloCalculator::computeEdgeLogLikelihood(std::size_t partIndex) {
+template<>
+double PhyloCalculator<UTree>::computeLogLikelihood(std::size_t partIndex) {
   return pll_compute_edge_loglikelihood(partData.partition, 
                                         virtualRoot->clv_index,
                                         virtualRoot->scaler_index,
@@ -156,7 +233,16 @@ double PhyloCalculator::computeEdgeLogLikelihood(std::size_t partIndex) {
                                         virtualRoot->back->scaler_index,
                                         virtualRoot->pmatrix_index,
                                         static_cast<int>(partIndex));
-
 }
+
+template<>
+double PhyloCalculator<RTree>::computeLogLikelihood(std::size_t partIndex) {
+  return pll_compute_root_loglikelihood(partData.partition, 
+                                        virtualRoot->clv_index,
+                                        virtualRoot->scaler_index,
+                                        static_cast<int>(partIndex));
+}
+template class PhyloCalculator<UTree>;
+template class PhyloCalculator<RTree>;
 
 } // namespace

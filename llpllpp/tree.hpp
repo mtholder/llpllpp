@@ -7,22 +7,26 @@
 #include "llpllpp/base_includes.hpp"
 #include "llpllpp/otus.hpp"
 struct pll_utree;
+struct pll_rtree;
 namespace pllpp {
 
-class UTree {
+template<typename W>
+class WrappedTree {
   public:
-  using node_ptr = pll_utree *;
+  using node_type = W;
+  using node_ptr = W *;
+  using wtree_type = WrappedTree<W>;
   private:
   std::shared_ptr<OTUSet> otusShPtr;
-  pll_utree * pllTree;
-  UTree()
+  node_ptr pllTree;
+  WrappedTree()
     :pllTree(nullptr) {
   }
   public:
-  ~UTree() {
+  ~WrappedTree() {
     clear();
   }
-  static std::unique_ptr<UTree> parseNewick(const std::string & fn,
+  static std::unique_ptr<WrappedTree<W> > parseNewick(const std::string & fn,
                                             std::shared_ptr<OTUSet> otus=nullptr);
   void setMissingBranchLength(double edgeLength);
   std::shared_ptr<OTUSet> getOTUSet() {
@@ -32,8 +36,12 @@ class UTree {
   std::size_t getNumLeaves() const {
     return (otusShPtr == nullptr ? 0U : otusShPtr->size());
   }
-  friend class PhyloCalculator;
+  private:
+  template<typename T> friend class PhyloCalculator;
 };
+using UTree = WrappedTree<pll_utree>;
+using RTree = WrappedTree<pll_rtree>;
+
 
 } // namespace pllpp
 #endif

@@ -15,12 +15,12 @@ class PartitionedData {
   pll_partition * partition = nullptr;
   int numProbMats = 0;
   public:
-  PartitionedData(const ParsedMatrix & parsedMat, const ModelStorageDescription &);
+  PartitionedData(const ParsedMatrix & parsedMat, const ModelStorageDescription &, bool rootedSize=true);
   ~PartitionedData() {
     clear();
   }
   void clear();
-  friend class PhyloCalculator;
+  template<typename T> friend class PhyloCalculator;
 };
 
 } // namespace pllpp

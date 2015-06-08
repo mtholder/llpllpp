@@ -9,14 +9,14 @@ constexpr unsigned NUM_STATES = 4U;
 constexpr unsigned NUM_RATE_CATS = 4U;
 
 void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFilename) {
-  std::shared_ptr<UTree> tree{std::move(UTree::parseNewick(newickFilename))};
+  std::shared_ptr<RTree> tree{std::move(RTree::parseNewick(newickFilename))};
   tree->setMissingBranchLength(0.000001);
   auto inpMatrix = ParsedMatrix::parseFasta(fastaFilename, tree->getOTUSet());
   ModelStorageDescription msd{DataCharEncodings::NUCLEOTIDE_DATA_ENCODING,
                               NUM_STATES,
                               NUM_RATE_CATS,
                               ArchAttribEnum::LLPLL_ATTRIB_ARCH_SSE};
-  UPhyloCalculator phyCalc(*inpMatrix, msd, tree);
+  RPhyloCalculator phyCalc(*inpMatrix, msd, tree);
   inpMatrix.release(); // we have copied the data into the phyCalc, and are done with the raw copy.
   // we only have one block of data, with index= 0
   auto & model = phyCalc.getModel(0);

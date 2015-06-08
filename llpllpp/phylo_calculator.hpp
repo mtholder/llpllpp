@@ -12,17 +12,20 @@
 struct pll_operation;
 namespace pllpp {
 
-class _OperationContainer;
+template<typename T> class _OperationContainer;
 
+template<typename W>
 class PhyloCalculator {
+  using node_type = typename W::node_type;
+  using node_ptr = typename W::node_ptr;
   PartitionedData partData;
   std::vector<DSCTProbModel> probModelVec;
-  std::shared_ptr<UTree> tree;
-  UTree::node_ptr virtualRoot = nullptr;
+  std::shared_ptr<W> tree;
+  node_ptr virtualRoot = nullptr;
   std::vector<double> edgeLengths;
   std::vector<int> matrixIndices;
-  _OperationContainer * opContainerPtr;
-  std::vector<UTree::node_ptr> traversalBuffer;
+  _OperationContainer<node_type> * opContainerPtr;
+  std::vector<node_ptr> traversalBuffer;
   typedef std::vector<unsigned long> UpdateCounterVec;
   UpdateCounterVec rateCatUpdateCounter;
   UpdateCounterVec stateFreqUpdateCounter;
@@ -37,7 +40,7 @@ class PhyloCalculator {
   PhyloCalculator & operator=(const PhyloCalculator &) = delete;
   PhyloCalculator(const ParsedMatrix & parsedMat,
                   const ModelStorageDescription &msd,
-                  std::shared_ptr<UTree> treeRef);
+                  std::shared_ptr<W> treeRef);
   ~PhyloCalculator() {
     clear();
   }
@@ -47,11 +50,13 @@ class PhyloCalculator {
   }
   void updateProbMatrices(std::size_t partIndex);
   void updatePartials(std::size_t partIndex);
-  double computeEdgeLogLikelihood(std::size_t partIndex);
+  double computeLogLikelihood(std::size_t partIndex);
   private:
   void init_traverse();
-
 };
+
+using UPhyloCalculator = PhyloCalculator<UTree>;
+using RPhyloCalculator = PhyloCalculator<RTree>;
 
 } // namespace pllpp
 #endif
