@@ -13,6 +13,17 @@ struct pll_operation;
 namespace pllpp {
 
 template<typename T> class _OperationContainer;
+template<typename W> class PhyloCalculator;
+
+template<typename W>
+class PhyloCalcEdgeView {
+  using node_type = typename W::node_type;
+  using node_ptr = typename W::node_ptr;
+  using calculator_type = PhyloCalculator<W>;
+  public:
+  PhyloCalcEdgeView(calculator_type & calc, node_ptr distal, node_ptr proximal);
+  double operator()(const double param, double * firstDerivative, double * secondDerivative);
+};
 
 template<typename W>
 class PhyloCalculator {
@@ -70,6 +81,9 @@ class PhyloCalculator {
     _fillInnerNodesArray(&(innerNodesAliases[0]));
     return &(innerNodesAliases[0]);
   }
+
+  PhyloCalcEdgeView<W> getEdgeLenOptView(std::size_t edgeIndex);
+
   private:
   void partialTraverse(const_node_ptr v);
   void initTraverse();

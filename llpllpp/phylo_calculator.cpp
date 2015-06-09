@@ -8,27 +8,25 @@ typedef struct
   int clv_valid;
 } node_info_t;
 
+static int cb_full_utraversal(pll_utree_t * node, pll_utree_t * prev);
+static int cb_full_rtraversal(pll_rtree_t * node, pll_rtree_t * prev);
+static int cb_partial_utraversal(pll_utree_t * node, pll_utree_t * prev);
+static int cb_partial_rtraversal(pll_rtree_t * node, pll_rtree_t * prev);
 
-
-static int cb_full_utraversal(pll_utree_t * node);
-static int cb_full_rtraversal(pll_rtree_t * node);
-static int cb_partial_utraversal(pll_utree_t * node);
-static int cb_partial_rtraversal(pll_rtree_t * node);
-
-static int cb_full_rtraversal(pll_rtree_t *) {
+static int cb_full_rtraversal(pll_rtree_t *, pll_rtree_t * ) {
   return 1;
 }
 
-static int cb_full_utraversal(pll_utree_t *) {
+static int cb_full_utraversal(pll_utree_t *, pll_utree_t * ) {
   return 1;
 }
 
-static int cb_partial_rtraversal(pll_rtree_t * ) {
+static int cb_partial_rtraversal(pll_rtree_t *, pll_rtree_t * ) {
   assert(0);
   return 1;
 }
 // from partial.c example in PLL a callback function for performing a partial traversal
-static int cb_partial_utraversal(pll_utree_t * node) {
+static int cb_partial_utraversal(pll_utree_t * node, pll_utree_t * ) {
   node_info_t * node_info;
   // if we don't want tips in the traversal we must return 0. here we allow tips
   if (!node->next) {
@@ -39,14 +37,14 @@ static int cb_partial_utraversal(pll_utree_t * node) {
   //   element is not yet allocated then we allocate it, set the direction
   //   and instruct the traversal routine to place the node in the traversal array
   //   by returning 1 
-  node_info = (node_info_t *)(node->data);
+  node_info = static_cast<node_info_t *>(node->data);
   if (!node_info) {
     // allocate data element 
-    node->data             = (node_info_t *)calloc(1,sizeof(node_info_t));
-    node->next->data       = (node_info_t *)calloc(1,sizeof(node_info_t));
-    node->next->next->data = (node_info_t *)calloc(1,sizeof(node_info_t));
+    node->data             = static_cast<node_info_t *>(calloc(1,sizeof(node_info_t)));
+    node->next->data       = static_cast<node_info_t *>(calloc(1,sizeof(node_info_t)));
+    node->next->next->data = static_cast<node_info_t *>(calloc(1,sizeof(node_info_t)));
     // set orientation on selected direction and traverse the subtree
-    node_info = (node_info_t *) node->data;
+    node_info = static_cast<node_info_t *>(node->data);
     node_info->clv_valid = 1;
     return 1;
   }
@@ -60,9 +58,9 @@ static int cb_partial_utraversal(pll_utree_t * node) {
   // otherwise, set orientation on selected direction
   node_info->clv_valid = 1;
   // reset orientation on the other two directions and return 1 to traverse this subtree 
-  node_info = (node_info_t *) node->next->data;
+  node_info = static_cast<node_info_t *>(node->next->data);
   node_info->clv_valid = 0;
-  node_info = (node_info_t *) node->next->next->data;
+  node_info = static_cast<node_info_t *>(node->next->next->data);
   node_info->clv_valid = 0;
   return 1;
 }
@@ -134,7 +132,7 @@ inline void _OperationContainer<pll_rtree_t>::createOps(int traversalSize) {
 }
 
 template<typename T>
-int _callPLLTraverse(const T * node, int cb(T*), T ** travBuff);
+int _callPLLTraverse(const T * node, int cb(T*, T*), T ** travBuff);
 template<typename T>
 int _callFullPLLTraverse(const T * node, T ** travBuff);
 template<typename T>
@@ -145,7 +143,7 @@ template<typename T>
 bool _isRooted();
 
 template<>
-inline int _callPLLTraverse<pll_utree_t>(const pll_utree_t * node, int cb(pll_utree_t *), pll_utree_t ** travBuff) {
+inline int _callPLLTraverse<pll_utree_t>(const pll_utree_t * node, int cb(pll_utree_t *, pll_utree_t *), pll_utree_t ** travBuff) {
   return pll_utree_traverse(const_cast<pll_utree_t *>(node), cb, travBuff);
 }
 
@@ -160,7 +158,7 @@ inline int _callPartialPLLTraverse<pll_utree_t>(const pll_utree_t * node, pll_ut
 }
 
 template<>
-inline int _callPLLTraverse<pll_rtree_t>(const pll_rtree_t * node, int cb(pll_rtree_t *), pll_rtree_t ** travBuff) {
+inline int _callPLLTraverse<pll_rtree_t>(const pll_rtree_t * node, int cb(pll_rtree_t *, pll_rtree_t *), pll_rtree_t ** travBuff) {
   return pll_rtree_traverse(const_cast<pll_rtree_t *>(node), cb, travBuff);
 }
 
@@ -250,7 +248,6 @@ void PhyloCalculator<W>::partialTraverse(const_node_ptr nv) {
     opContainerPtr->createOps(travLen);
   }
 }
-
 
 template<typename W>
 void PhyloCalculator<W>::clear() {

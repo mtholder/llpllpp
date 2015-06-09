@@ -2,8 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdarg>
-#include <ctime>
-#include "pll.h"
+
 using namespace pllpp;
 int doMain(int argc, char * argv[]);
 void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFilename);
@@ -31,20 +30,12 @@ void calcLikeDemo(const std::string & newickFilename, const std::string &fastaFi
   model.setStateFrequencies(stateFreqs);
   model.setExchangeabilityParams(subsParams);
   model.getRateHet().setAlphaOfGammaDist(1.0);
-  constexpr unsigned int N_DRAWS = 10;
   const auto innerNodeArray= phyCalc.getInnerNodesArray();
-  for (auto i = 0U; i < N_DRAWS; ++i) {
-    auto r = static_cast<std::size_t>(rand()) % phyCalc.getInnerNodesCount();
-    auto randNode = innerNodeArray[r];
-    int randDir = static_cast<std::size_t>(rand()) % 3;
-    for (auto j = 0; j < randDir; ++j) {
-      randNode = randNode->next;
-    }
-    phyCalc.setVirtualRoot(randNode);
-    phyCalc.updateProbMatrices(0);
-    phyCalc.updatePartials(0);
-    std::cout << "Log-L: " << std::setprecision(9) << phyCalc.computeLogLikelihood(0) << '\n';
-  }
+  auto firstNode = innerNodeArray[0];
+  phyCalc.setVirtualRoot(firstNode);
+  phyCalc.updateProbMatrices(0);
+  phyCalc.updatePartials(0);
+  std::cout << "Log-L: " << std::setprecision(9) << phyCalc.computeLogLikelihood(0) << '\n';
 }
 
 
@@ -59,6 +50,5 @@ int doMain(int argc, char * argv[]) {
 }
 
 int main(int argc, char * argv[]) {
-  std::srand(static_cast<unsigned>(std::time(nullptr)));
   return main_wrapper(argc, argv, doMain);
 }

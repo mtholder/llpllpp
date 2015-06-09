@@ -20,6 +20,9 @@ class WrappedTree {
   private:
   std::shared_ptr<OTUSet> otusShPtr;
   node_ptr pllTree;
+  std::vector<node_ptr> nodes;
+  using edge_type = std::pair<node_ptr, node_ptr>;
+  std::vector<edge_type> edges;
   WrappedTree()
     :pllTree(nullptr) {
   }
@@ -38,6 +41,7 @@ class WrappedTree {
     return (otusShPtr == nullptr ? 0U : otusShPtr->size());
   }
   private:
+  void _initEdges();
   template<typename T> friend class PhyloCalculator;
 };
 

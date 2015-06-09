@@ -10,6 +10,7 @@ libllpllpp_la_SOURCES = \
 	aa_models.cpp \
 	dsct_prob_model.cpp \
 	instance.cpp \
+	nr.cpp \
 	parsed_matrix.cpp \
 	partitioned_data.cpp \
 	phylo_calculator.cpp \

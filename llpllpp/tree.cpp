@@ -1,12 +1,13 @@
 #include "llpllpp/tree.hpp"
 #include "pll.h"
-
 namespace pllpp {
 
 template<typename T>
 typename T::node_ptr _rawRead(const std::string & rn, int & tipCount);
 template<typename T>
-int _queryTipnodes(typename T::node_ptr, typename T::node_ptr *);
+std::size_t _queryTipnodes(typename T::node_ptr, typename T::node_ptr *);
+template<typename T>
+std::size_t _queryInternals(typename T::node_ptr, typename T::node_ptr *);
 template<typename T>
 void _destroyTree(typename T::node_ptr & tree);
 template<typename T>
@@ -29,16 +30,29 @@ inline RTree::node_ptr _rawRead<RTree>(const std::string & fn,
 }
 
 template<>
-inline int _queryTipnodes<UTree>(UTree::node_ptr t,
-                          UTree::node_ptr * v) {
-  return pll_utree_query_tipnodes(t, v);
+inline std::size_t _queryTipnodes<UTree>(UTree::node_ptr t,
+                                 UTree::node_ptr * v) {
+  return static_cast<std::size_t>(pll_utree_query_tipnodes(t, v));
 }
 
 template<>
-inline int _queryTipnodes<RTree>(RTree::node_ptr t,
-                          RTree::node_ptr * v) {
-  return pll_rtree_query_tipnodes(t, v);
+inline std::size_t _queryInternals<UTree>(UTree::node_ptr t,
+                                  UTree::node_ptr * v) {
+  return static_cast<std::size_t>(pll_utree_query_innernodes(t, v));
 }
+
+template<>
+inline std::size_t _queryTipnodes<RTree>(RTree::node_ptr t,
+                          RTree::node_ptr * v) {
+  return static_cast<std::size_t>(pll_rtree_query_tipnodes(t, v));
+}
+
+template<>
+inline std::size_t _queryInternals<RTree>(RTree::node_ptr t,
+                                  RTree::node_ptr * v) {
+  return static_cast<std::size_t>(pll_rtree_query_innernodes(t, v));
+}
+
 
 template<>
 inline void _destroyTree<UTree>(UTree::node_ptr & tree) {
@@ -122,20 +136,21 @@ WrappedTree<W>::parseNewick(const std::string & fn,
                                           std::shared_ptr<OTUSet> otus) {
   int tipCount;
   node_ptr tree = _rawRead<wtree_type>(fn, tipCount);
+  const std::size_t tipCountU = static_cast<std::size_t>(tipCount);
   if (tree == nullptr) {
     throw PLLException(std::string("Could not read a tree from ") + fn);
   }
-  // Move
-  std::vector<node_ptr> tipNodes;
-  tipNodes.resize(static_cast<std::size_t>(tipCount));
-
+  wtree_type * utree = new wtree_type();
+  utree->nodes.clear();
+  utree->nodes.resize(2*tipCountU);
   try {
     if (otus == nullptr) {
       otus = std::make_shared<OTUSet>();
-      _queryTipnodes<wtree_type>(tree, &(tipNodes[0]));
-      for (auto i = 0UL ; i < static_cast<std::size_t>(tipCount); ++i) {
-        assert(tipNodes[i] != nullptr);
-        auto j = otus->addNewName(tipNodes[i]->label);
+      const auto qtc = _queryTipnodes<wtree_type>(tree, &(utree->nodes[0]));
+      assert(qtc == tipCountU);
+      for (auto i = 0UL ; i < tipCountU; ++i) {
+        assert(utree->nodes[i] != nullptr);
+        auto j = otus->addNewName(utree->nodes[i]->label);
         assert(j == static_cast<std::size_t>(i));
       }
     } else {
@@ -143,14 +158,31 @@ WrappedTree<W>::parseNewick(const std::string & fn,
     }
   } catch (...) {
     _destroyTree<wtree_type>(tree);
+    delete utree;
     throw;
   }
-  // Now transfer to a new UTree
-
-  wtree_type * utree = new wtree_type();
+  const auto nInternals = _queryInternals<wtree_type>(tree, &(utree->nodes[tipCountU]));
+  assert(nInternals + tipCountU <= utree->nodes.size());
+  utree->nodes.resize(nInternals + tipCountU);
   utree->pllTree = tree;
   utree->otusShPtr = otus;
+  utree->_initEdges();
   return std::unique_ptr<wtree_type>(utree);
+}
+
+// fills `edges` based on other fields. callec by parseNewick
+template<>
+void UTree::_initEdges() {
+  assert(edges.empty());
+  assert(!nodes.empty());
+}
+
+// fills `edges` based on other fields. callec by parseNewick
+template<>
+void RTree::_initEdges() {
+  assert(edges.empty());
+  assert(!nodes.empty());
+  edges.resize(nodes.size() - 1);
 }
 
 template<typename W>
